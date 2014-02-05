@@ -18,23 +18,29 @@ var colors   = require('colors'),
     program
         .version(version)
         .usage('Usage: $0 -t npm -n myModule')
-        .option('-t --template [template]', 'Template name (from [MODULE_PATH]/.generator)')
         .option('-n --name [name]', 'Name of project to be generated')
+        .option('-a --add [path]', 'Add folder as template (optional -n)')
+        .option('-l --list', 'List all saved templates')
+        .option('-r --remove [template]', 'Remove template from list')
+        .option('-t --build [template]', 'Creates a project with the selected template')
         .option('-s --setup', 'Initializes the included modules at [MODULE_PATH]/.generator')
         .parse(process.argv);
 
-var map = {source: __dirname + '/../templates', target: __dirname + '/../.generator'},
-    copy        = require('../lib/copy')(map),
+var paths = {source: __dirname + '/../templates', target: __dirname + '/../.generator'},
+    copy        = require('../lib/copy')(paths),
+    setup       = require('../lib/setup')(paths),
+    add       = require('../lib/add')(paths),
+    list       = require('../lib/list')(paths),
+    remove       = require('../lib/remove')(paths),
     make        = require('../lib/make'),
     render      = require('../lib/render'),
-    setup       = require('../lib/setup')(map),
     walk        = require('../lib/walk');
 
 /**
  * Error handler
  */
 function stderr (err) {
-    console.log('Error: '.red + err.red);
+    console.log(typeof err === 'object' ? err.toString().red : ('Error: ' + err).red);
     process.exit(1);
 }
 
@@ -44,19 +50,34 @@ function stderr (err) {
 /**
  * Execute
  */
+// Setup
 if (program.setup) {
     setup(function (err) {
         if (err) return stderr(err);
         console.log('Done.'.green);
     });
+// Add
+} else if (program.add){
+    add(program.add, program.name, function (err) {
+        if (err) return stderr(err);
+        console.log('Done.'.green);
+    });
+// Remove
+} else if (program.remove){
+    remove(program.remove, function (err) {
+        if (err) return stderr(err);
+        console.log(program.remove.bold + ' removed.'.green);
+    });
+} else if (program.list){
+    list();
 } else {
     // Check requirements
-    if (typeof program.template === 'undefined' || program.name === 'undefined') {
+    if (typeof program.build === 'undefined' || program.name === 'undefined') {
         return stderr('Template (-t) and project name (-n) must be specified. See --help');
     }
 
     // Replicate the template
-    copy(program.template, program.name, function (err, path) {
+    copy(program.build, program.name, function (err, path) {
         if (err) return stderr(err);
 
         // Walk and gather variables
