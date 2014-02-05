@@ -10,11 +10,11 @@
     "utility"
   ],
   "version": "1.0.1",
-  "homepage": "https://github.com/thisandagain/generator",
+  "homepage": "https://github.com/wgator/generator",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/thisandagain/generator.git"
+    "url": "https://github.com/wgator/generator.git"
   },
   "preferGlobal": true,
   "main": "./lib/index.js",
